@@ -1,14 +1,16 @@
-# Secure Environment
+# Secure Environmental Variable Storage
 
-Stores environmental variables in a nacl/secretbox (XSalsa20 and Poly1305).
+Stores environmental variables in a nacl/secretbox (XSalsa20 and Poly1305) for later.
 
-## Situations to use secenv:
+Note: While running the app using ecenv yourapp.sh, the variables are going to be unencrypted (plaintext) somewhere in /proc/ directory. Just like typing `KEY=123 run.sh` This would be possible to view if one is owner of the machine, while it is running. 
 
-  * *Untrusted peer users*
-  * Trusted machine + network (out of our control?)
-  * Trusted administrator(s) (root can read /proc/ and copy your files to reverse engineer)
-  * If your program requires hard-to-type environmental variables at runtime (such as AWS or other API keys)
-  * If you don't need to automatically reboot the server (you need to unlock the config every time it runs)
+If you encounter any issues, report them on github.com/aerth/secenv/issues/new
+
+Pull requests are welcome at github.
+
+## Works with:
+
+AWS, Mandrill, Sendgrid, Heroku, and on and on...
 
 ## Usage
 
