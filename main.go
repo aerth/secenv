@@ -43,7 +43,7 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	if !seconf.Detect("config.enc") && askForConfirmation("No config file found. Would you like to create one?") {
+	if !seconf.Detect("config.enc") && askForConfirmation("Welcome to secenv. No config file found. Would you like to create one?") {
 		err := seconf.Lock("config.enc", "Secured Environment", "Enter the first environmental NAME", "Enter the first environmental VALUE", "Enter the second environmental NAME", "Enter the second environmental VALUE")
 		if err != nil {
 			fmt.Println(err)
