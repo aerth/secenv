@@ -10,7 +10,7 @@ Pull requests are welcome at github.
 
 ## Works with:
 
-AWS, Mandrill, Sendgrid, Heroku, and on and on...
+AWS Keys, Mandrill Keys, Sendgrid Keys, Heroku Keys, and on and on...
 
 ## Usage
 
@@ -27,4 +27,10 @@ Run something with the variables:
 
 ```
 secenv test.sh
+```
+
+Test it out (output to stdout):
+
+```
+secenv env
 ```
