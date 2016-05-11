@@ -31,59 +31,115 @@ import (
 	"github.com/aerth/seconf"
 )
 
-func main() {
+var usageinfo = `
+			
+[seconf version 0.8]
+
+	usage
+		
+		Delete Config: secenv -d			
+		Create Config: secenv
+		Usage: secenv env
+			   secenv yourprogram
+			   secenv 'yourprogram has -flags /etc'
+`
+var configarray []string
+
+// Check Arguments
+func checkflags() {
+
+	// Since running secenv is config creation, not checking for 'not enough args' until further down.
 	if len(os.Args) > 1 {
+
+		// Show version and info
+		if os.Args[1] == "-h" || os.Args[1] == "-v" || os.Args[1] == "help" {
+			fmt.Println(usageinfo)
+			os.Exit(1)
+		}
+
+		// Delete ~/.secenv if possible
 		if os.Args[1] == "-d" {
-			if !seconf.Detect("config.enc") {
+			if !seconf.Detect("secenv") {
 				fmt.Println("No config file to delete.")
 				os.Exit(1)
 			}
 			fmt.Println("Removing Environment")
-			seconf.Destroy("config.enc")
+			seconf.Destroy("secenv")
 			os.Exit(1)
 		}
 	}
-	if !seconf.Detect("config.enc") && askForConfirmation("Welcome to secenv. No config file found. Would you like to create one?") {
-		err := seconf.Lock("config.enc", "Secured Environment", "Enter the first environmental NAME", "Enter the first environmental VALUE", "Enter the second environmental NAME", "Enter the second environmental VALUE")
+}
+
+// Load configuration
+func doconf() []string {
+	if !seconf.Detect("secenv") && askForConfirmation("Welcome to secenv. No config file found at ~/.secenv, would you like to create one?") {
+		err := seconf.Lock("secenv", // name of config file ( in $HOME )
+			"Secured Environment", // Title (for display only)
+			"Enter the first environmental NAME",
+			"Enter the first environmental VALUE",
+			"Enter the second environmental NAME",
+			"Enter the second environmental VALUE") // We could keep going but secenv is just for pair of key:value
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println(err) // Print error from seconf library
 			os.Exit(1)
 		}
+		// Config file exists and is unloaded, but there is nothing to run.
 		if len(os.Args) < 2 {
 			os.Exit(0)
 		}
 	}
-	if !seconf.Detect("config.enc") {
+
+	if !seconf.Detect("secenv") {
 		fmt.Println("No config.")
 		os.Exit(1)
 	}
+
 	if len(os.Args) < 2 {
 		fmt.Println("User error: No command supplied.")
-		fmt.Println("Usage: " + os.Args[0] + " ./yourprogram or " + os.Args[0] + " yourprogram ")
-		fmt.Println("Destroy: " + os.Args[0] + " -d")
+		fmt.Println(usageinfo)
 		os.Exit(1)
 	}
 
-	configdecoded, err := seconf.Read("config.enc")
+	configdecoded, err := seconf.Read("secenv")
 	if err != nil {
 		fmt.Println("error:")
 		fmt.Println(err)
 		os.Exit(1)
 	}
+
 	configarray := strings.Split(configdecoded, "::::")
+	return configarray
+}
+
+func main() {
+
+	// delete and exit if -d is set
+	checkflags()
+
+	// otherwise operate as normal, create or decode config.
+	configarray = doconf()
+
+	// corrupt or wrong version config file
 	if len(configarray) < 4 {
 		fmt.Println("Bad config magic.")
 		os.Exit(1)
 	}
+
+	// Set first variable
 	os.Setenv(configarray[0], configarray[1])
+	// Set second variable
 	os.Setenv(configarray[2], configarray[3])
 
+	// Run command with the env under bash
 	cmd := strings.Join(os.Args[1:], " ")
 	out, err := exec.Command("bash", "-c", cmd).Output()
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	// Print output
 	fmt.Printf(string(out))
+
 }
 
 // constainsString returns true if a slice contains a string.
@@ -92,7 +148,7 @@ func containsString(slice []string, element string) bool {
 }
 
 // askForConfirmation returns true if the user types one of the "okayResponses"
-// https://gist.github.com/albrow/5882501
+// adapted from https://gist.github.com/albrow/5882501
 func askForConfirmation(p string) bool {
 	fmt.Println(p)
 	var response string
